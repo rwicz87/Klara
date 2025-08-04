@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klara - AI Medicinsk Copywriter</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+    
+    <style>
+        /* ======================= NY DESIGN FÖR KLARA ======================= */
+        :root {
+            /* Nytt ljust tema och anpassade färger */
+            --pico-font-family: 'Inter', sans-serif;
+            --pico-font-size: 100%;
+            --pico-primary: #00796B; /* En professionell Teal-färg */
+            --pico-primary-hover: #004D40;
+            --pico-primary-focus: rgba(0, 121, 107, 0.25);
+            --pico-background-color: #F8F9FA;
+            --pico-h1-color: #212529;
+            --pico-card-background-color: #FFFFFF;
+        }
+
+        body {
+            font-family: var(--pico-font-family);
+            background-color: var(--pico-background-color);
+        }
+
+        main.container {
+            max-width: 800px;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            width: 120px; /* Lite större logotyp */
+            height: auto;
+            margin-bottom: 0.5rem;
+        }
+
+        .card {
+            background-color: var(--pico-card-background-color);
+            padding: 2rem;
+            border-radius: var(--pico-border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .step-label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--pico-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        button[type="submit"] {
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+        }
+
+        #results-container {
+            margin-top: 2.5rem;
+            display: none;
+        }
+
+        #output-text {
+            background-color: #F8F9FA; /* Något mörkare bakgrund för resultat */
+            padding: 1.5rem;
+            border-radius: var(--pico-border-radius);
+            border: 1px solid var(--pico-form-element-border-color);
+            min-height: 200px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        /* ======================================================================= */
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <header>
+            <img src="http://googleusercontent.com/image_generation_content/45" alt="Klara Logotyp" class="logo">
+        </header>
+
+        <article class="card">
+            <form id="klara-form">
+                <label class="step-label" for="source-text">Steg 1: Källmaterial</label>
+                <textarea id="source-text" name="source-text" placeholder="Klistra in den tekniska texten här..." required></textarea>
+
+                <div class="grid">
+                    <div>
+                        <label class="step-label" for="audience">Steg 2: Målgrupp</label>
+                        <select id="audience" required>
+                            <option value="Vuxen patient" selected>Vuxen patient</option>
+                            <option value="Förälder till barn">Förälder till barn</option>
+                            <option value="Barn (7-12 år)">Barn (7-12 år)</option>
+                            <option value="Anhörig">Anhörig</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="step-label" for="tone">Steg 3: Tonläge</label>
+                        <select id="tone" required>
+                            <option value="Empatisk & Varm" selected>Empatisk & Varm</option>
+                            <option value="Formell & Auktoritativ">Formell & Auktoritativ</option>
+                            <option value="Direkt & Koncis">Direkt & Koncis</option>
+                            <option value="Uppmuntande">Uppmuntande</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <label class="step-label" for="format">Steg 4: Format</label>
+                <select id="format" required>
+                    <option value="FAQ för webbsida" selected>FAQ för webbsida</option>
+                    <option value="Informationsbroschyr">Informationsbroschyr</option>
+                    <option value="Steg-för-steg-instruktion">Steg-för-steg-instruktion</option>
+                </select>
+
+                <button type="submit">Generera Patienttext</button>
+            </form>
+        </article>
+
+        <div class="spinner" id="loading-spinner" style="display: none; margin-top: 2rem;">
+            <article aria-busy="true">Klara tänker... Genererar text baserat på dina val.</article>
+        </div>
+
+        <section id="results-container">
+            <h2 class="step-label" style="margin-top: 2.5rem; text-align: center;">Resultat</h2>
+            <div id="output-text"></div>
+        </section>
+    </main>
+
+    <script>
+        // JavaScript-koden är oförändrad och fungerar som förut.
+        const form = document.getElementById('klara-form');
+        const sourceTextInput = document.getElementById('source-text');
+        const audienceSelect = document.getElementById('audience');
+        const toneSelect = document.getElementById('tone');
+        const formatSelect = document.getElementById('format');
+        
+        const resultsContainer = document.getElementById('results-container');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const outputText = document.getElementById('output-text');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const sourceText = sourceTextInput.value;
+            const audience = audienceSelect.value;
+            const tone = toneSelect.value;
+            const format = formatSelect.value;
+
+            if (sourceText.trim() === '') {
+                alert('Källmaterialet kan inte vara tomt.');
+                return;
+            }
+
+            loadingSpinner.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            
+            mockApiCall(sourceText, audience, tone, format)
+                .then(data => {
+                    displayResult(data);
+                })
+                .catch(error => {
+                    alert('Något gick fel: ' + error.message);
+                })
+                .finally(() => {
+                    loadingSpinner.style.display = 'none';
+                });
+        });
+        
+        function displayResult(data) {
+            outputText.innerText = data.generatedText;
+            resultsContainer.style.display = 'block';
+        }
+
+        function mockApiCall(sourceText, audience, tone, format) {
+            console.log("Simulerar API-anrop med följande parametrar:", {sourceText, audience, tone, format});
+            
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    const mockResponse = {
+                        generatedText: `--- SIMULERAT SVAR ---\n\nDu har valt:\n- Målgrupp: ${audience}\n- Tonläge: ${tone}\n- Format: ${format}\n\nBaserat på dina val, här är ett utkast:\n\n**Vad är Gastroskopi?**\n\nGastroskopi är en undersökning där en läkare tittar ner i din matstrupe och magsäck med hjälp av en tunn, böjlig slang med en kamera på. Vi gör detta för att förstå varför du har ont i magen eller andra besvär.\n\nVi förstår att detta kan kännas nervöst, men vi kommer att ta väl hand om dig. Du kommer att få bedövning och avslappnande medel för att göra det så bekvämt som möjligt för dig.`
+                    };
+                    resolve(mockResponse);
+                }, 3000);
+            });
+        }
+    </script>
+</body>
+</html>
