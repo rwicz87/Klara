@@ -154,50 +154,59 @@
         const loadingSpinner = document.getElementById('loading-spinner');
         const outputText = document.getElementById('output-text');
 
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const sourceText = sourceTextInput.value;
-            const audience = audienceSelect.value;
-            const tone = toneSelect.value;
-            const format = formatSelect.value;
+form.addEventListener('submit', function(event) {
+    event.preventDefault();
 
-            if (sourceText.trim() === '') {
-                alert('Källmaterialet kan inte vara tomt.');
-                return;
-            }
+    const sourceText = sourceTextInput.value;
+    const audience = audienceSelect.value;
+    const tone = toneSelect.value;
+    const format = formatSelect.value;
 
-            loadingSpinner.style.display = 'block';
-            resultsContainer.style.display = 'none';
-            
-            mockApiCall(sourceText, audience, tone, format)
-                .then(data => {
-                    displayResult(data);
-                })
-                .catch(error => {
-                    alert('Något gick fel: ' + error.message);
-                })
-                .finally(() => {
-                    loadingSpinner.style.display = 'none';
-                });
+    if (sourceText.trim() === '') {
+        alert('Källmaterialet kan inte vara tomt.');
+        return;
+    }
+
+    loadingSpinner.style.display = 'block';
+    resultsContainer.style.display = 'none';
+    
+    // HÄR ÄR ÄNDRINGEN: apiCall anropas.
+    apiCall(sourceText, audience, tone, format)
+        .then(data => {
+            displayResult(data);
+        })
+        .catch(error => {
+            // Detta kommer nu att visa fel från din backend om något går fel.
+            alert('Ett fel uppstod: ' + error.message);
+        })
+        .finally(() => {
+            loadingSpinner.style.display = 'none';
         });
+});
         
         function displayResult(data) {
             outputText.innerText = data.generatedText;
             resultsContainer.style.display = 'block';
         }
 
-        function mockApiCall(sourceText, audience, tone, format) {
-            console.log("Simulerar API-anrop med följande parametrar:", {sourceText, audience, tone, format});
-            
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    const mockResponse = {
-                        generatedText: `--- SIMULERAT SVAR ---\n\nDu har valt:\n- Målgrupp: ${audience}\n- Tonläge: ${tone}\n- Format: ${format}\n\nBaserat på dina val, här är ett utkast:\n\n**Vad är Gastroskopi?**\n\nGastroskopi är en undersökning där en läkare tittar ner i din matstrupe och magsäck med hjälp av en tunn, böjlig slang med en kamera på. Vi gör detta för att förstå varför du har ont i magen eller andra besvär.\n\nVi förstår att detta kan kännas nervöst, men vi kommer att ta väl hand om dig. Du kommer att få bedövning och avslappnande medel för att göra det så bekvämt som möjligt för dig.`
-                    };
-                    resolve(mockResponse);
-                }, 3000);
-            });
+        function apiCall(sourceText, audience, tone, format) {
+    // Verifiera att detta är din korrekta Vercel-länk för Klara-projektet.
+    const apiUrl = 'https://klara-three.vercel.app/'; 
+
+    return fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sourceText, audience, tone, format }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw new Error(err.error || 'Okänt serverfel') });
         }
+        return response.json();
+    });
+}
     </script>
 </body>
 </html>
